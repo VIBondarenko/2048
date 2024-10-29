@@ -1,0 +1,124 @@
+<!-- FILE: game-2048.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2048 Game</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <h1 id="game-title">Game 2048 VBO</h1>
+    <div id="score-container">Score: <span id="score">0</span></div>
+    <button id="settings-button" class="glass-button">Settings</button>
+
+    <div id="settings-modal" class="modal">
+        <div class="modal-content glass-modal">
+            <span id="close-settings" class="close glass-close">&times;</span>
+            <h2 class="glass-heading">Settings</h2>
+            <div class="glass-form-group">
+                <label for="color-picker" class="glass-label">Choose game container color:</label>
+                <input type="color" id="color-picker" name="color-picker" class="glass-input" value="#bbada0">
+            </div>
+            <div class="glass-form-group">
+                <label for="background-picker" class="glass-label">Choose background color:</label>
+                <input type="color" id="background-picker" name="background-picker" class="glass-input" value="#333333">
+            </div>
+            <div class="glass-form-group">
+                <label for="animation-select" class="glass-label">Choose background animation:</label>
+                <select id="animation-select" class="glass-input">
+                    <option value="none">None</option>
+                    <option value="falling-leaves">Falling Leaves</option>
+                    <option value="falling-snow">Falling Snow</option>
+                    <option value="falling-rain">Falling Rain</option>
+                    <option value="sunny-weather">Sunny Weather</option>
+                </select>
+            </div>
+            <div class="glass-form-group">
+                <label for="animation-speed" class="glass-label">Animation speed (seconds):</label>
+                <input type="number" id="animation-speed" name="animation-speed" class="glass-input" value="5" min="1" max="20">
+            </div>
+            <button id="save-settings" class="glass-button">Save Settings</button>
+        </div>
+    </div>
+    <div id="game-container"></div>
+    <script src="/scripts/scripts.js"></script>
+    <script>
+        document.getElementById('color-picker').addEventListener('input', (e) => {
+            document.getElementById('game-container').style.backgroundColor = e.target.value;
+        });
+
+        function updateButtonColor() {
+            const bgColor = window.getComputedStyle(document.body).backgroundColor;
+            const button = document.getElementById('settings-button');
+            button.style.backgroundColor = bgColor;
+            button.style.color = getContrastYIQ(bgColor);
+        }
+
+        function getContrastYIQ(hexcolor) {
+            hexcolor = hexcolor.replace("#", "");
+            const r = parseInt(hexcolor.substr(0, 2), 16);
+            const g = parseInt(hexcolor.substr(2, 2), 16);
+            const b = parseInt(hexcolor.substr(4, 2), 16);
+            const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+            return (yiq >= 128) ? 'black' : 'white';
+        }
+
+        document.getElementById('background-picker').addEventListener('input', (e) => {
+            document.body.style.backgroundColor = e.target.value;
+            updateButtonColor();
+        });
+
+        document.getElementById('save-settings').addEventListener('click', () => {
+            const gameContainerColor = document.getElementById('color-picker').value;
+            const backgroundColor = document.getElementById('background-picker').value;
+            const animation = document.getElementById('animation-select').value;
+            const animationSpeed = document.getElementById('animation-speed').value;
+
+            localStorage.setItem('gameContainerColor', gameContainerColor);
+            localStorage.setItem('backgroundColor', backgroundColor);
+            localStorage.setItem('animation', animation);
+            localStorage.setItem('animationSpeed', animationSpeed);
+
+            alert('Settings saved!');
+        });
+
+        function loadSettings() {
+            const gameContainerColor = localStorage.getItem('gameContainerColor');
+            const backgroundColor = localStorage.getItem('backgroundColor');
+            const animation = localStorage.getItem('animation');
+            const animationSpeed = localStorage.getItem('animationSpeed');
+
+            if (gameContainerColor) {
+                document.getElementById('game-container').style.backgroundColor = gameContainerColor;
+                document.getElementById('color-picker').value = gameContainerColor;
+            }
+            if (backgroundColor) {
+                document.body.style.backgroundColor = backgroundColor;
+                document.getElementById('background-picker').value = backgroundColor;
+                updateButtonColor();
+            }
+            if (animation) {
+                document.body.className = animation;
+                document.getElementById('animation-select').value = animation;
+                if (animation === 'falling-snow') {
+                    createSnowflakes();
+                } else if (animation === 'falling-rain') {
+                    createRaindrops();
+                } else if (animation === 'falling-leaves') {
+                    createLeaves();
+                }
+            }
+            if (animationSpeed) {
+                document.documentElement.style.setProperty('--animation-speed', `${animationSpeed}s`);
+                document.getElementById('animation-speed').value = animationSpeed;
+            }
+        }
+
+        window.addEventListener('load', () => {
+            updateButtonColor();
+            loadSettings();
+        });
+    </script>
+</body>
+</html>
